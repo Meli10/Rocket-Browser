@@ -8,5 +8,6 @@ Rocket Browser is a fully hydrated web browser. Built with Python using PyQt5
 4. resizable window (maximized by default)
 5. Google search (or set your preferred homepage)
 
-### Coming Soon:
+
+## Coming Soon:
 Rocket Browser will soon have an .exe available for download.
