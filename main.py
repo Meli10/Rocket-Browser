@@ -14,7 +14,7 @@ class MainWindow(QMainWindow):
 	def __init__(self, *args, **kwargs):
 		super(MainWindow, self).__init__(*args, **kwargs)
 
-		self.setWindowIcon(QIcon("rocket.png"))
+		self.setWindowIcon(QIcon("pics/rocket.png"))
 		self.setIconSize(QSize(80, 80))
 		self.showMaximized()
 		self.setWindowTitle("Rocket")
@@ -31,14 +31,14 @@ class MainWindow(QMainWindow):
 		self.status = QStatusBar()
 		self.setStatusBar(self.status) 									 # setting status bar to the main window
 
-		navtb = QToolBar("Navigation")
+		navtb = QToolBar('Navigation')
 
 		self.addToolBar(navtb)											 # adding tool bar to the main window
 
-		back_btn = QAction("Back", self)
+		back_btn = QAction('Back', self)
 
-		back_btn.setIcon(QIcon('backward.png'))
-		back_btn.setStatusTip("Back to previous page")
+		back_btn.setIcon(QIcon('pics/backward.png'))
+		back_btn.setStatusTip('Back to previous page')
 		# adding action to back button
 		# making current tab to go back
 		back_btn.triggered.connect(lambda: self.tabs.currentWidget().back())
@@ -46,23 +46,23 @@ class MainWindow(QMainWindow):
 		navtb.addAction(back_btn)
 
 		# Adding next button
-		next_btn = QAction("Forward", self)
-		next_btn.setIcon(QIcon('Forward.png'))
-		next_btn.setStatusTip("Forward to next page")
+		next_btn = QAction('Forward', self)
+		next_btn.setIcon(QIcon('pics/Forward.png'))
+		next_btn.setStatusTip('Forward to next page')
 		next_btn.triggered.connect(lambda: self.tabs.currentWidget().forward())
 		navtb.addAction(next_btn)
 
 		# Adding reload button
-		reload_btn = QAction("Refresh", self)
-		reload_btn.setIcon(QIcon('Refresh.png'))
-		reload_btn.setStatusTip("Refresh page")
+		reload_btn = QAction('Refresh', self)
+		reload_btn.setIcon(QIcon('pics/Refresh.png'))
+		reload_btn.setStatusTip('Refresh page')
 		reload_btn.triggered.connect(lambda: self.tabs.currentWidget().reload())
 		navtb.addAction(reload_btn)
 
 		# Creating home action
-		home_btn = QAction("Home", self)
-		home_btn.setStatusTip("Go home")
-		home_btn.setIcon(QIcon('home.png'))
+		home_btn = QAction('Home', self)
+		home_btn.setStatusTip('Go home')
+		home_btn.setIcon(QIcon('pics/home.png'))
 
 		# Adding action to home button
 		home_btn.triggered.connect(self.navigate_home)
@@ -97,8 +97,8 @@ class MainWindow(QMainWindow):
 		navtb.addWidget(self.urlbar)
 
 		# Adding stop action
-		stop_btn = QAction("Stop", self)
-		stop_btn.setStatusTip("Stop loading current page")
+		stop_btn = QAction('Stop', self)
+		stop_btn.setStatusTip('Stop loading current page')
 		stop_btn.triggered.connect(lambda: self.tabs.currentWidget().stop())
 		navtb.addAction(stop_btn)
 
@@ -199,7 +199,7 @@ class MainWindow(QMainWindow):
 		# if scheme is blank
 		if q.scheme() == "":
 			# set scheme
-			q.setScheme("http")
+			q.setScheme('http')
    
 
 		# set the url
@@ -230,7 +230,7 @@ if __name__ == '__main__':
 
 	app.setStyleSheet(style)
 	# setting name to the application
-	app.setApplicationName("Rocket")
+	app.setApplicationName('Rocket')
 
 	# creating MainWindow object
 	window = MainWindow()
