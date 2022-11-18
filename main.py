@@ -5,7 +5,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWebEngineWidgets import *
 from PyQt5.QtPrintSupport import *
 import sys
-
+import images_qr
 
 # Main window
 class MainWindow(QMainWindow):
@@ -14,7 +14,7 @@ class MainWindow(QMainWindow):
 	def __init__(self, *args, **kwargs):
 		super(MainWindow, self).__init__(*args, **kwargs)
 
-		self.setWindowIcon(QIcon("pics/rocket.png"))
+		self.setWindowIcon(QIcon(":/pics/rocket.png"))
 		self.setIconSize(QSize(80, 80))
 		self.showMaximized()
 		self.setWindowTitle("Rocket")
@@ -46,7 +46,7 @@ class MainWindow(QMainWindow):
 
 		back_btn = QAction('Back', self)
 
-		back_btn.setIcon(QIcon('pics/backward.png'))
+		back_btn.setIcon(QIcon(':/pics/backward.png'))
 		back_btn.setStatusTip('Back to previous page')
 		# adding action to back button
 		# making current tab to go back
@@ -56,14 +56,14 @@ class MainWindow(QMainWindow):
 
 		# Adding next button
 		next_btn = QAction('Forward', self)
-		next_btn.setIcon(QIcon('pics/Forward.png'))
+		next_btn.setIcon(QIcon(':/pics/Forward.png'))
 		next_btn.setStatusTip('Forward to next page')
 		next_btn.triggered.connect(lambda: self.tabs.currentWidget().forward())
 		navtb.addAction(next_btn)
 
 		# Adding reload button
 		reload_btn = QAction('Refresh', self)
-		reload_btn.setIcon(QIcon('pics/Refresh.png'))
+		reload_btn.setIcon(QIcon(':/pics/Refresh.png'))
 		reload_btn.setStatusTip('Refresh page')
 		reload_btn.triggered.connect(lambda: self.tabs.currentWidget().reload())
 		navtb.addAction(reload_btn)
@@ -71,7 +71,7 @@ class MainWindow(QMainWindow):
 		# Creating home action
 		home_btn = QAction('Home', self)
 		home_btn.setStatusTip('Go home')
-		home_btn.setIcon(QIcon('pics/home.png'))
+		home_btn.setIcon(QIcon(':/pics/home.png'))
 
 		# Adding action to home button
 		home_btn.triggered.connect(self.navigate_home)
