@@ -1,9 +1,11 @@
 <RCC>
-  <qresource prefix="/" >
-    <file>pics/rocket.png</file>
-    <file>pics/Forward.png</file>
-    <file>pics/backward.png</file>
-    <file>pics/Refresh.png</file>
-    <file>pics/home.png</file>
-  </qresource>
+    <qresource prefix="/">
+        <file>pics/backward.png</file>
+        <file>pics/Forward.png</file>
+        <file>pics/home.png</file>
+        <file>pics/no_ssl_lock.png</file>
+        <file>pics/Refresh.png</file>
+        <file>pics/rocket.png</file>
+        <file>pics/ssl_lock.png</file>
+    </qresource>
 </RCC>
