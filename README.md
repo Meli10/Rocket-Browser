@@ -12,7 +12,5 @@ Rocket Browser is a fully hydrated web browser. Built with Python using PyQt5
 Want a new feature? Start a new discussion!
 
 ## News:
-Rocket Browser v2.0.0-alpha is now available for download! Head over to the releases tab and download it now.
+Rocket Browser v3.0.0-alpha (Stratosphere) is now available for download! Head over to the releases tab and download it now.
 
-## Known Issues:
-When playing videos, closing the tab won't always stop the video from playing.
