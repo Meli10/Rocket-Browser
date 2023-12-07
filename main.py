@@ -1,15 +1,47 @@
 import sys
 import os
 from PyQt6.QtCore import QSize, QRectF, QUrl, Qt, QEvent
-from PyQt6.QtGui import QIcon, QPainter, QPainterPath, QColor, QPen, QPixmap, QLinearGradient, QAction, QKeySequence
-from PyQt6.QtWidgets import QApplication, QMainWindow, QTabWidget, QTabBar, QLabel, QLineEdit, QToolBar, QStatusBar, QWidget
+from PyQt6.QtGui import QIcon, QPainter, QPainterPath, QColor, QPen, QPixmap, QLinearGradient, QAction
+from PyQt6.QtWidgets import QApplication, QMainWindow, QTabWidget, QTabBar, QLabel, QLineEdit, QToolBar, QStatusBar, QWidget, QSizePolicy, QPushButton, QMenu, QListWidget, QListWidgetItem, QDialog, QVBoxLayout
 from PyQt6.QtWebEngineWidgets import QWebEngineView
-from PyQt6.QtWebEngineCore import QWebEngineSettings, QWebEnginePage
+from PyQt6.QtWebEngineCore import QWebEngineSettings
 
+# Get absolute path to resource, works for development and for PyInstaller
 def resource_path(relative_path):
-    """ Get absolute path to resource, works for development and for PyInstaller """
     base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base_path, relative_path)
+
+class HistoryDialog(QDialog):
+    def __init__(self, history, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Browsing History")
+        self.layout = QVBoxLayout(self)
+
+        # List widget for history
+        self.history_list = QListWidget()
+        for title, url in history:
+            item = QListWidgetItem(f"{title}: {url}")
+            item.setData(Qt.ItemDataRole.UserRole, url)
+            self.history_list.addItem(item)
+        self.layout.addWidget(self.history_list)
+
+        # Clear history button
+        self.clear_button = QPushButton("Clear History")
+        self.clear_button.clicked.connect(self.accept)
+        self.layout.addWidget(self.clear_button)
+
+        # Connect item clicked signal
+        self.history_list.itemClicked.connect(self.on_item_clicked)
+
+        # Store the parent (main window) reference for later use
+        self.parent = parent
+
+    def on_item_clicked(self, item):
+        url = item.data(Qt.ItemDataRole.UserRole)
+        self.parent.add_new_tab(QUrl(url))
+
+    def clear_history(self):
+        return self.exec() == QDialog.DialogCode.Accepted
 
 class TruncatedTabBar(QTabBar):
     def paintEvent(self, event):
@@ -49,7 +81,9 @@ class MainWindow(QMainWindow):
         super().__init__(*args, **kwargs)
         self.browserFullScreen = False
         self.previousWindowState = self.windowState()
+        self.browserHistory = []
         
+        # Adding resource paths. This is needed to locate images correctly for .EXE
         back_btn_icon_path = resource_path('pics/backward.png')
         next_btn_icon_path = resource_path('pics/Forward.png')
         home_btn_icon_path = resource_path('pics/home.png')
@@ -57,6 +91,7 @@ class MainWindow(QMainWindow):
         self.no_ssl_icon_path = resource_path('pics/no_ssl_lock.png')
         self.ssl_icon_path = resource_path('pics/ssl_lock.png')
         title_bar_icon_path = resource_path('pics/rocket.png')
+        settings_btn_icon_path = resource_path('pics/Settings.png')
 
         self.tabs = QTabWidget()
         self.tabs.setTabBar(TruncatedTabBar())
@@ -160,6 +195,19 @@ class MainWindow(QMainWindow):
         search_btn.setStatusTip('Search the web')
         search_btn.triggered.connect(self.navigate_to_url)
         self.navtb.addAction(search_btn)
+        
+        spacer = QWidget()
+        spacerPolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        spacer.setSizePolicy(spacerPolicy)
+        
+        # Create the settings button
+        settings_button = QPushButton()
+        settings_button.setMenu(self.create_settings_menu())
+        settings_button.setIcon(QIcon(settings_btn_icon_path))
+
+        # Add the spacer and settings button to the toolbar
+        self.navtb.addWidget(spacer)
+        self.navtb.addWidget(settings_button)
 
     def set_tab_title(self, index, title):
         truncated_title = self.truncate_tab_text(title, max_length=20)
@@ -228,6 +276,9 @@ class MainWindow(QMainWindow):
         browser = QWebEngineView()
         browser.setUrl(qurl)
 
+        # Functionality to update search history in browser 
+        browser.urlChanged.connect(self.update_history)
+
         # Connect the fullScreenRequested signal to the handler
         browser.page().fullScreenRequested.connect(self.on_fullScreenRequested)
         browser.page().settings().setAttribute(QWebEngineSettings.WebAttribute.FullScreenSupportEnabled, True)
@@ -248,6 +299,26 @@ class MainWindow(QMainWindow):
 		# Set the tab title
         browser.loadFinished.connect(lambda _, i=i, browser=browser: 
                              self.tabs.setTabText(i, self.truncate_tab_text(browser.page().title(), max_length=20)))
+        
+    def update_history(self, qurl):
+        title = self.tabs.currentWidget().page().title()
+        self.browserHistory.append((title, qurl.toString()))
+        
+    def show_history(self):
+        dialog = HistoryDialog(self.browserHistory, self)
+        if dialog.clear_history():
+            self.browserHistory.clear()
+        
+    def create_settings_menu(self):
+        settings_menu = QMenu(self)
+        
+        # Existing theme actions...
+
+        view_history_action = QAction("View History", self)
+        view_history_action.triggered.connect(self.show_history)
+        settings_menu.addAction(view_history_action)
+
+        return settings_menu
 
     def truncate_tab_text(self, text, max_length):
         if len(text) > max_length:
