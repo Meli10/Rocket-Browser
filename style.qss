@@ -1,0 +1,55 @@
+
+QLabel{
+    padding-right: 3px;
+    padding-left: 1px;
+}
+
+QLineEdit#urlbar{
+    border-radius: 10px;
+    font-size: 13px;
+    padding: 4px;
+    selection-background-color: lightgray;
+    selection-color: black;
+    max-width: 800px
+}
+
+QLineEdit:hover{
+    border: 1px solid grey;
+}
+
+QLabel#httpsicon{
+    padding-right: 3px;
+    padding-left: 1px;
+}
+
+QPushButton#settings_btn{
+    margin-left: 0px;
+    margin-right: 0px; 
+    padding-right: 0px; 
+}
+QPushButton::menu-indicator#settings_btn{
+    image: none;
+    width: 0px;
+    padding: 0px;
+}
+
+QTabBar#tabs::tab {
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    padding: 4px;
+    margin: 2px;
+}
+
+QTabBar#tabs::tab:selected {
+    background-color: white;
+    border-bottom-color: transparent; /* to remove the bottom border on selected tab */
+}
+
+QTabBar#tabs::tab:hover {
+    background-color: lightgray;
+}
+
+QTabBar#tabs::close-button {
+    subcontrol-position: right;
+    subcontrol-origin: margin;
+}

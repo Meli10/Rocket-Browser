@@ -1,6 +1,6 @@
 import sys
 import os
-from PyQt6.QtCore import QSize, QRectF, QUrl, Qt, QEvent
+from PyQt6.QtCore import QSize, QRectF, QUrl, Qt
 from PyQt6.QtGui import QIcon, QPainter, QPainterPath, QColor, QPen, QPixmap, QLinearGradient, QAction
 from PyQt6.QtWidgets import QApplication, QMainWindow, QTabWidget, QTabBar, QLabel, QLineEdit, QToolBar, QStatusBar, QWidget, QSizePolicy, QPushButton, QMenu, QListWidget, QListWidgetItem, QDialog, QVBoxLayout
 from PyQt6.QtWebEngineWidgets import QWebEngineView
@@ -44,6 +44,13 @@ class HistoryDialog(QDialog):
         return self.exec() == QDialog.DialogCode.Accepted
 
 class TruncatedTabBar(QTabBar):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName('tabs')
+        self.setTabsClosable(True)
+        self.setMovable(True)
+        self.setDocumentMode(True)
+    
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
@@ -94,20 +101,18 @@ class MainWindow(QMainWindow):
         settings_btn_icon_path = resource_path('pics/Settings.png')
 
         self.tabs = QTabWidget()
+        self.tabs.setObjectName('tabs')
         self.tabs.setTabBar(TruncatedTabBar())
         self.setWindowIcon(QIcon(title_bar_icon_path))
-        self.setIconSize(QSize(80, 80))
+        self.setIconSize(QSize(16, 16))
         self.resize(1024, 768)
         self.setMinimumSize(800, 600)
         self.showMaximized()
         self.setWindowTitle("Rocket")
         self.setStyleSheet(".QIcon {font-size: 11px;}")
-        self.tabs.setDocumentMode(True)
-        self.tabs.setTabsClosable(True)
-        self.tabs.setMovable(True)
-        
+
         # Creating first tab
-        self.add_new_tab(QUrl('http://www.google.com'), 'Homepage')
+        self.add_new_tab(QUrl('https://www.google.com'))
         self.show()
 
 		# adding action when double clicked
@@ -133,7 +138,6 @@ class MainWindow(QMainWindow):
 
 		# Adding next button functionality
         next_btn = QAction('Forward', self)
-        
         next_btn.setIcon(QIcon(next_btn_icon_path))
         next_btn.setStatusTip('Forward to next page')
         next_btn.triggered.connect(lambda: self.tabs.currentWidget().forward())
@@ -159,24 +163,11 @@ class MainWindow(QMainWindow):
         self.httpsicon = QLabel()
         self.httpsicon.setPixmap(QPixmap(os.path.join(self.no_ssl_icon_path)))
         self.navtb.addWidget(self.httpsicon)
+        self.httpsicon.setObjectName('httpsicon')
 
 		# Creating a line edit widget for URL
         self.urlbar = QLineEdit()
-        urlbar_style = '''
-  			QLineEdit{
-				border-radius: 10px;
-           		font-size: 13px;
-             	padding: 4px;
-              	selection-background-color: lightgray;
-                selection-color: black;
-               	max-width: 800px
-            }
-            
-            QLineEdit:hover{
-                border: 1px solid grey;
-            }
-            '''
-        self.urlbar.setStyleSheet(urlbar_style)
+        self.urlbar.setObjectName('urlbar')
 
         # Adding action to line edit when return key is pressed
         self.urlbar.returnPressed.connect(self.navigate_to_url)
@@ -204,6 +195,10 @@ class MainWindow(QMainWindow):
         settings_button = QPushButton()
         settings_button.setMenu(self.create_settings_menu())
         settings_button.setIcon(QIcon(settings_btn_icon_path))
+        settings_button.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+        settings_button.setFixedSize(24, 24)
+        settings_button.setIconSize(QSize(16, 16))
+        settings_button.setObjectName('settings_btn')
 
         # Add the spacer and settings button to the toolbar
         self.navtb.addWidget(spacer)
@@ -225,11 +220,11 @@ class MainWindow(QMainWindow):
         self.previousWindowState = self.windowState()
 
         # Hide all the unnecessary widgets
-        self.navtb.setVisible(False)
-        self.status.setVisible(False)
-        self.urlbar.setVisible(False)
-        self.tabs.tabBar().hide()
+        hidden_widgets = [self.navtb, self.status, self.urlbar]
+        for widget in hidden_widgets:
+            widget.setVisible(False)
 
+        self.tabs.tabBar().hide()
         self.tabs.currentWidget().setFocus()
         self.setFocus()
         self.showFullScreen()
@@ -252,16 +247,15 @@ class MainWindow(QMainWindow):
             self.showMaximized()
 
         # Make UI elements visible again
-        self.navtb.setVisible(True)
-        self.status.setVisible(True)
-        self.urlbar.setVisible(True)
-        self.tabs.setVisible(True)
+        unhide_widgets = [self.navtb, self.status, self.urlbar, self.tabs]
+        for widget in unhide_widgets:
+            widget.setVisible(True)
+
         self.tabs.tabBar().show()
         if self.tabs.currentIndex() >= 0:
             self.tabs.currentWidget().setFocus()
 
     def keyPressEvent(self, event):
-        print("Key Pressed:", event.key())  # Debugging line
         if event.key() == Qt.Key.Key_Escape:
             if self.browserFullScreen:
                 self.exitFullScreenMode()
@@ -273,17 +267,24 @@ class MainWindow(QMainWindow):
     def add_new_tab(self, qurl=None, label='Blank'):
         if qurl is None:
             qurl = QUrl('http://www.google.com')
+
         browser = QWebEngineView()
         browser.setUrl(qurl)
+        i = self.tabs.addTab(browser, label)
+        browser.iconChanged.connect(lambda: self.set_tab_site_icon(i, browser))
+
+        # Set attributes for this QWebEnginePage
+        page_settings = browser.page().settings()
+        page_settings.setAttribute(QWebEngineSettings.WebAttribute.PluginsEnabled, True)
+        page_settings.setAttribute(QWebEngineSettings.WebAttribute.AllowRunningInsecureContent, True)
+        page_settings.setAttribute(QWebEngineSettings.WebAttribute.FullScreenSupportEnabled, True)
 
         # Functionality to update search history in browser 
         browser.urlChanged.connect(self.update_history)
 
         # Connect the fullScreenRequested signal to the handler
         browser.page().fullScreenRequested.connect(self.on_fullScreenRequested)
-        browser.page().settings().setAttribute(QWebEngineSettings.WebAttribute.FullScreenSupportEnabled, True)
 
-        i = self.tabs.addTab(browser, label)
         self.tabs.setCurrentIndex(i)
         browser.titleChanged.connect(lambda title, index=i: self.set_tab_title(index, title))
         
@@ -300,6 +301,11 @@ class MainWindow(QMainWindow):
         browser.loadFinished.connect(lambda _, i=i, browser=browser: 
                              self.tabs.setTabText(i, self.truncate_tab_text(browser.page().title(), max_length=20)))
         
+    def set_tab_site_icon(self, index, browser):
+        favicon = browser.icon()
+        if not favicon.isNull():
+            self.tabs.setTabIcon(index, favicon)
+        
     def update_history(self, qurl):
         title = self.tabs.currentWidget().page().title()
         self.browserHistory.append((title, qurl.toString()))
@@ -311,8 +317,6 @@ class MainWindow(QMainWindow):
         
     def create_settings_menu(self):
         settings_menu = QMenu(self)
-        
-        # Existing theme actions...
 
         view_history_action = QAction("View History", self)
         view_history_action.triggered.connect(self.show_history)
@@ -325,9 +329,8 @@ class MainWindow(QMainWindow):
             return text[:max_length - 3] + '...'
         return text
 
-		# When double clicked is pressed on tabs
-		# First, check the index i.e
-  		# If there are no tabs under the click, create a new tab
+		# When double clicking on tabbar
+		# First, check the index. If there are no tabs under the click, create a new tab
     def tab_open_doubleclick(self, i):
         if i == -1:
             self.add_new_tab()
@@ -355,7 +358,6 @@ class MainWindow(QMainWindow):
         if widget_to_close is not None:
             widget_to_close.deleteLater()
 
-	# Method for updating the title
     # This method now ensures the tab text is updated with the page title correctly
     def update_title(self, browser):
         if browser != self.tabs.currentWidget():
@@ -367,7 +369,7 @@ class MainWindow(QMainWindow):
 
 	# Action for home to be set as google
     def navigate_home(self):
-        self.tabs.currentWidget().setUrl(QUrl('http://www.google.com'))
+        self.tabs.currentWidget().setUrl(QUrl('https://www.google.com'))
 
     def navigate_to_url(self):
 
@@ -399,6 +401,10 @@ class MainWindow(QMainWindow):
 def main():
     app = QApplication(sys.argv)
     window = MainWindow()
+    qss_file_path = resource_path('style.qss')
+    with open(qss_file_path, "r") as file:
+        qss = file.read()
+        app.setStyleSheet(qss)
 
     app.setApplicationName('Rocket')
     app.exec()
